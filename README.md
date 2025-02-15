@@ -30,7 +30,7 @@ NotesAI solves these problems by leveraging LLama AI models and Groq API to gene
 
 🛠️ Features
 
-✅ PDF Summarization: Extracts and summarizes text from PDFs, including scanned documents using OCR.✅ Wikipedia Summarization: Users can manually input Wikipedia content for structured summarization.✅ YouTube Transcript Summarization: Requires users to first download the transcript, which is then processed for key insights.✅ Question & Answer System: Uses AI to answer user-generated questions from the summarized content.✅ AI-Powered Processing: Utilizes LLama-3.1-8B-Instant and Groq API for fast and efficient summarization.
+✅ PDF Summarization: Extracts and summarizes text from PDFs..✅ Wikipedia Summarization: Users can manually input Wikipedia content for structured summarization.✅ YouTube Transcript Summarization: Requires users to first download the transcript, which is then processed for key insights.✅ Question & Answer System: Uses AI to answer user-generated questions from the summarized content.✅ AI-Powered Processing: Utilizes LLama-3.1-8B-Instant and Groq API for fast and efficient summarization.
 
 🏷️ Tech Stack
 
