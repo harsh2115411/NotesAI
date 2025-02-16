@@ -44,31 +44,33 @@ BeautifulSoup4 (Web Scraping Wikipedia - Manual Input Required) 🌐
 
 
 
-Future Scope of NotesAI:
-Support for More File Formats
+**Future Scope of NotesAI**
 
-Extend support for Word documents (.docx) and text files (.txt) in addition to PDFs.
-Quiz Generation
+- **Support for More File Formats**  
+  - Extend support for **Word documents (`.docx`)** and **text files (`.txt`)** in addition to PDFs.  
 
-Implement an AI-powered quiz generator that creates multiple-choice questions (MCQs) and short-answer questions based on document content.
-Flashcard Functionality
+- **Quiz Generation**  
+  - Implement an AI-powered **quiz generator** that creates **multiple-choice questions (MCQs)** and **short-answer questions** based on document content.  
 
-Introduce an automated flashcard system that extracts key concepts and definitions for efficient learning.
-Improved Summarization Options
+- **Flashcard Functionality**  
+  - Introduce an automated **flashcard system** that extracts key concepts and definitions for **efficient learning**.  
 
-Allow users to choose between short, medium, or detailed summaries for better customization.
-Keyword Extraction & Highlights
+- **Improved Summarization Options**  
+  - Allow users to choose between **short, medium, or detailed** summaries for better customization.  
 
-Automatically extract important keywords and highlight key points for quick insights.
-Better User Interface
+- **Keyword Extraction & Highlights**  
+  - Automatically extract **important keywords** and highlight key points for quick insights.  
 
-Develop a web-based UI using Streamlit for easier access and interaction.
-Export & Save Features
+- **Better User Interface**  
+  - Develop a **web-based UI using Streamlit** for easier access and interaction.  
 
-Add an option to download summaries, quizzes, and flashcards as a PDF or text file.
-Multi-Language Support
+- **Export & Save Features**  
+  - Add an option to **download summaries, quizzes, and flashcards** as a **PDF or text file**.  
 
-Enable summarization, quiz generation, and flashcard creation in multiple languages using translation APIs.
+- **Multi-Language Support**  
+  - Enable summarization, quiz generation, and flashcard creation in **multiple languages** .
+
+
 
 
 YouTube Transcript API (Requires Manual Transcript Download) 🎥
