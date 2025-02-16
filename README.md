@@ -44,7 +44,7 @@ BeautifulSoup4 (Web Scraping Wikipedia - Manual Input Required) 🌐
 
 
 
-**Future Scope of NotesAI**
+🛠️**Future Scope of NotesAI**
 
 - **Support for More File Formats**  
   - Extend support for **Word documents (`.docx`)** and **text files (`.txt`)** in addition to PDFs.  
