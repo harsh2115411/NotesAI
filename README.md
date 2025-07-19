@@ -77,4 +77,4 @@ YouTube Transcript API (Requires Manual Transcript Download) 🎥
 
 Groq API & LLama-3.1-8B-Instant 🤙
 
-Requests, Re (Regex), and Logging   
+Requests, Re (Regex), and Logging           
