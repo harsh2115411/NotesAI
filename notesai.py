@@ -27,8 +27,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# Custom CSS for better UI
 st.markdown("""
 <style>
     .main-header {
@@ -81,8 +79,6 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
-# Initialize session state
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 if 'retrieval_chain' not in st.session_state:
@@ -90,10 +86,8 @@ if 'retrieval_chain' not in st.session_state:
 if 'processed_sources' not in st.session_state:
     st.session_state.processed_sources = []
 
-# API Keys setup
 def setup_api_keys():
     try:
-        # Get API keys from Streamlit secrets
         openai_key = st.secrets["OPENAI_API_KEY"]
         groq_key = st.secrets["GROQ_API_KEY"]
         
@@ -109,8 +103,6 @@ def setup_api_keys():
     except Exception as e:
         st.error(f"❌ Error loading API keys: {e}")
         return False
-
-# Your existing functions with minor fixes
 @st.cache_data(show_spinner=False)
 def fetch_transcript_YT(video_url: str) -> Document:
     if 'groq_key' not in st.session_state:
@@ -274,11 +266,8 @@ def setup_bot(docs: list[Document]):
 
 # Main UI
 def main():
-    # Header
     st.markdown('<h1 class="main-header">📚 NotesAI - Smart Learning Assistant</h1>', unsafe_allow_html=True)
     st.markdown("---")
-
-    # Check API keys
     if not setup_api_keys():
         return
 
@@ -391,8 +380,6 @@ def main():
                 </ol>
             </div>
             """, unsafe_allow_html=True)
-
-            # Feature highlights
             col1, col2, col3 = st.columns(3)
             
             with col1:
@@ -500,7 +487,6 @@ def main():
                     except Exception as e:
                         st.error(f"Error generating response: {e}")
 
-            # Quick action buttons
             # Quick action buttons
             st.markdown("### 🚀 Quick Actions")
             col1, col2, col3 = st.columns(3)
