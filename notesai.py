@@ -427,7 +427,7 @@ def main():
                 <ul style="color: #34495e; font-size: 1rem; line-height: 1.6;">
                      <li><b>📄 PDF:</b> Use only unencrypted and unlocked PDFs. Avoid scanned or image-only PDFs.</li>
                     <li><b>🌐 Web Page:</b> Some sites may block text extraction. If content isn’t loading, try another webpage.</li>
-                    <li><b>🎥 YouTube Video:</b> If subtitles are missing, long videos may take more time to process. Also if tried with too many Youtube videos in a single day, Youtube can block your IP and this application may throw an error, In that case try in another device</li>
+                    <li><b>🎥 YouTube Video:</b> If subtitles are missing, long videos may take more time to process. Also if tried with too many Youtube videos in a single day, Youtube can block IP and this application may throw an error,In that case It might not work</li>
                 </ul>
                 <p style="color: #2c3e50; margin-top: 1rem;">
                          👉 Go to the <b>'Add Sources'</b> tab to upload your content and start learning!
@@ -543,5 +543,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
