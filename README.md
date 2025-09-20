@@ -1,6 +1,8 @@
 # 📚 NotesAI - Smart Learning Assistant
 ## 🚀 Live Demo: [Click Here](https://notesai-harsh-pilania.streamlit.app/)
 ## 📱DEMO Video: [Click Here](https://drive.google.com/file/d/1A75QbvEN3gimHp0v1EL6i57fBoBgg-Ty/view?usp=sharing)
+
+## Home page :
 ![NotesAI Banner](assets/NotesAI.png)
 
 
