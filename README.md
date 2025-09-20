@@ -1,5 +1,7 @@
 # 📚 NotesAI - Smart Learning Assistant
 ## 🚀 Live Demo: [Click Here](https://notesai-harsh-pilania.streamlit.app/)
+![NotesAI Banner](assets/NotesAI.png)
+
 
 A powerful **AI-driven learning companion** that transforms any content source into an interactive learning experience. Chat with YouTube videos, web pages, and PDF documents using advanced AI to get personalized explanations, summaries, and quizzes.
 
