@@ -427,7 +427,7 @@ def main():
                 <ul style="color: #34495e; font-size: 1rem; line-height: 1.6;">
                      <li><b>📄 PDF:</b> Use only unencrypted and unlocked PDFs. Avoid scanned or image-only PDFs.</li>
                     <li><b>🌐 Web Page:</b> Some sites may block text extraction. If content isn’t loading, try another webpage.</li>
-                    <li><b>🎥 YouTube Video:</b> It may or May not work for Youtube Video , because Youtube may block IP due to multiple requests</li>
+                    <li><b>🎥 YouTube Video:</b> Please note that YouTube video processing may occasionally be unavailable due to API rate limiting from high traffic volumes. You can view our NotesAI demonstration video to see the full functionality and user interface.</li>
                 </ul>
                 <p style="color: #2c3e50; margin-top: 1rem;">
                          👉 Go to the <b>'Add Sources'</b> tab to upload your content and start learning!
@@ -543,6 +543,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
