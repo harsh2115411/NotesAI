@@ -259,7 +259,7 @@ def setup_bot(docs: list[Document]):
     ])
     
     document_chain = create_stuff_documents_chain(llm, prompt)
-    retriever = db.as_retriever()
+    retriever = db.as_retriever(search_kwargs={"k": 8})
     retrieval_chain = create_retrieval_chain(retriever, document_chain)
     
     return retrieval_chain,memory
@@ -543,6 +543,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
