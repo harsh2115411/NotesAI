@@ -211,8 +211,8 @@ def process_docs(docs: list[Document]) -> FAISS:
         
     try:
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200
+            chunk_size=2000,
+            chunk_overlap=400
         )
         document_chunks = text_splitter.split_documents(docs)
         embeddings = OpenAIEmbeddings(api_key=st.session_state.openai_key)
@@ -543,6 +543,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
