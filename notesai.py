@@ -123,11 +123,24 @@ def fetch_transcript_YT(video_url: str) -> Document:
     else:
         st.error("Invalid YouTube URL")
         return None
-
+    import requests
+    from ratelimit import limits, sleep_and_retry
+    
+    
     # Method 1: YouTube Transcript API
     try:
-        ytt_api = YouTubeTranscriptApi()
-        result = ytt_api.fetch(video_id)
+        proxy_url = st.secrets["WEBSHARE_PROXY"]
+        PROXIES = {"http": proxy_url, "https": proxy_url}
+        YouTubeTranscriptApi.requests_session = requests.Session()
+        YouTubeTranscriptApi.requests_session.proxies.update(PROXIES)
+        
+        @sleep_and_retry
+        @limits(calls=2, period=60) 
+        def limited_fetch(video_id):
+            ytt_api = YouTubeTranscriptApi()
+            return ytt_api.fetch(video_id)
+        
+        result = limited_fetch(video_id)
         text = " ".join(snippet.text for snippet in result.snippets)
         if text.strip():
             return Document(page_content=text, metadata={"source": video_url})
@@ -211,8 +224,8 @@ def process_docs(docs: list[Document]) -> FAISS:
         
     try:
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000,
-            chunk_overlap=400
+            chunk_size=1000,
+            chunk_overlap=200
         )
         document_chunks = text_splitter.split_documents(docs)
         embeddings = OpenAIEmbeddings(api_key=st.session_state.openai_key)
@@ -259,7 +272,7 @@ def setup_bot(docs: list[Document]):
     ])
     
     document_chain = create_stuff_documents_chain(llm, prompt)
-    retriever = db.as_retriever(search_kwargs={"k": 8})
+    retriever = db.as_retriever()
     retrieval_chain = create_retrieval_chain(retriever, document_chain)
     
     return retrieval_chain,memory
@@ -282,7 +295,7 @@ def main():
         with col1:
             source_type = st.selectbox(
                 "Choose source type:",
-                ["PDF Document", "Web Page", "YouTube Video"],
+                ["YouTube Video", "Web Page", "PDF Document"],
                 key="source_type_select"
             )
         
@@ -423,11 +436,11 @@ def main():
     # No sources available message
                 st.markdown("""
                 <div style="text-align: left; padding: 1.5rem; background: #f8f9fa; border-radius: 10px; margin: 2rem 0;">
-                <h3 style="color: #2c3e50;">⚠️Important Instructions for Adding Sources</h3>
+                <h3 style="color: #2c3e50;">📌 Instructions for Adding Sources</h3>
                 <ul style="color: #34495e; font-size: 1rem; line-height: 1.6;">
                      <li><b>📄 PDF:</b> Use only unencrypted and unlocked PDFs. Avoid scanned or image-only PDFs.</li>
                     <li><b>🌐 Web Page:</b> Some sites may block text extraction. If content isn’t loading, try another webpage.</li>
-                    <li><b>🎥 YouTube Video:</b> Please note that YouTube video processing may occasionally be unavailable due to API rate limiting from high traffic volumes. You can view our NotesAI demonstration video to see the full functionality and user interface.</li>
+                    <li><b>🎥 YouTube Video:</b> If subtitles are missing, long videos may take more time to process.</li>
                 </ul>
                 <p style="color: #2c3e50; margin-top: 1rem;">
                          👉 Go to the <b>'Add Sources'</b> tab to upload your content and start learning!
@@ -543,11 +556,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
