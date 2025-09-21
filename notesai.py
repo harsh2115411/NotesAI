@@ -224,8 +224,8 @@ def process_docs(docs: list[Document]) -> FAISS:
         
     try:
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200
+            chunk_size=2000,
+            chunk_overlap=400
         )
         document_chunks = text_splitter.split_documents(docs)
         embeddings = OpenAIEmbeddings(api_key=st.session_state.openai_key)
@@ -272,7 +272,7 @@ def setup_bot(docs: list[Document]):
     ])
     
     document_chain = create_stuff_documents_chain(llm, prompt)
-    retriever = db.as_retriever()
+    retriever = db.as_retriever(search_kwargs={"k": 8})
     retrieval_chain = create_retrieval_chain(retriever, document_chain)
     
     return retrieval_chain,memory
@@ -556,5 +556,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
