@@ -392,7 +392,7 @@ def main():
         with col1:
             source_type = st.selectbox(
                 "Choose source type:",
-                ["YouTube Video", "Web Page", "PDF Document"],
+                ["PDF Document", "Web Page", "YouTube Video"],
                 key="source_type_select"
             )
         
@@ -675,3 +675,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
