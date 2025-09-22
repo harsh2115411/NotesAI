@@ -20,6 +20,9 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
 import tempfile
+import time
+import requests
+from datetime import datetime, timedelta
 
 st.set_page_config(
     page_title="NotesAI - Smart Learning Assistant",
@@ -27,6 +30,48 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Initialize rate limiting in session state
+if 'youtube_requests' not in st.session_state:
+    st.session_state.youtube_requests = []
+
+# Rate limiting configuration
+YOUTUBE_RATE_LIMIT = 5  # requests per hour
+RATE_LIMIT_WINDOW = 3600  # 1 hour in seconds
+
+def check_youtube_rate_limit():
+    """Check if we can make a YouTube request based on rate limiting"""
+    current_time = datetime.now()
+    # Remove requests older than the rate limit window
+    st.session_state.youtube_requests = [
+        req_time for req_time in st.session_state.youtube_requests 
+        if current_time - req_time < timedelta(seconds=RATE_LIMIT_WINDOW)
+    ]
+    
+    # Check if we've exceeded the rate limit
+    if len(st.session_state.youtube_requests) >= YOUTUBE_RATE_LIMIT:
+        oldest_request = min(st.session_state.youtube_requests)
+        wait_time = RATE_LIMIT_WINDOW - (current_time - oldest_request).total_seconds()
+        return False, wait_time
+    
+    return True, 0
+
+def record_youtube_request():
+    """Record a YouTube request for rate limiting"""
+    st.session_state.youtube_requests.append(datetime.now())
+
+def get_proxy_config():
+    """Get proxy configuration from Streamlit secrets"""
+    try:
+        proxy_config = {
+            'http': st.secrets.get("WEBSHARE_PROXY", ""),
+            'https': st.secrets.get("WEBSHARE_PROXY", "")
+        }
+        return proxy_config if proxy_config['http'] else None
+    except:
+        st.warning("⚠️ Proxy configuration not found in secrets. Using direct connection.")
+        return None
+
 st.markdown("""
 <style>
     .main-header {
@@ -77,14 +122,25 @@ st.markdown("""
         border-radius: 10px;
         margin: 1rem 0;
     }
+    .rate-limit-warning {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 1rem;
+        border-radius: 10px;
+        border-left: 4px solid #f5c6cb;
+        margin: 1rem 0;
+    }
 </style>
 """, unsafe_allow_html=True)
+
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 if 'retrieval_chain' not in st.session_state:
     st.session_state.retrieval_chain = None
 if 'processed_sources' not in st.session_state:
     st.session_state.processed_sources = []
+if 'last_youtube_request' not in st.session_state:
+    st.session_state.last_youtube_request = 0
 
 def setup_api_keys():
     try:
@@ -103,12 +159,22 @@ def setup_api_keys():
     except Exception as e:
         st.error(f"❌ Error loading API keys: {e}")
         return False
+
 @st.cache_data(show_spinner=False)
 def fetch_transcript_YT(video_url: str) -> Document:
+    # Check rate limit first
+    can_proceed, wait_time = check_youtube_rate_limit()
+    if not can_proceed:
+        st.error(f"⏱️ YouTube rate limit reached. Please wait {int(wait_time/60)} minutes before trying again.")
+        return None
+    
     if 'groq_key' not in st.session_state:
         st.error("Groq API key not configured!")
         return None
-        
+    
+    # Record the request for rate limiting
+    record_youtube_request()
+    
     client = Groq(api_key=st.session_state.groq_key)
     parsed_url = urlparse(video_url)
 
@@ -123,31 +189,40 @@ def fetch_transcript_YT(video_url: str) -> Document:
     else:
         st.error("Invalid YouTube URL")
         return None
-    import requests
-    from ratelimit import limits, sleep_and_retry
-    
-    
-    # Method 1: YouTube Transcript API
+
+    # Get proxy configuration
+    proxy_config = get_proxy_config()
+
+    # Method 1: YouTube Transcript API with proxy
     try:
-        proxy_url = st.secrets["WEBSHARE_PROXY"]
-        PROXIES = {"http": proxy_url, "https": proxy_url}
-        YouTubeTranscriptApi.requests_session = requests.Session()
-        YouTubeTranscriptApi.requests_session.proxies.update(PROXIES)
+        # Set up proxy for requests session if available
+        if proxy_config:
+            import requests
+            session = requests.Session()
+            session.proxies.update(proxy_config)
+            # YouTubeTranscriptApi doesn't directly support proxy, 
+            # but we can patch the requests module temporarily
+            original_get = requests.get
+            requests.get = lambda *args, **kwargs: session.get(*args, **kwargs)
         
-        @sleep_and_retry
-        @limits(calls=2, period=60) 
-        def limited_fetch(video_id):
-            ytt_api = YouTubeTranscriptApi()
-            return ytt_api.fetch(video_id)
-        
-        result = limited_fetch(video_id)
+        ytt_api = YouTubeTranscriptApi()
+        result = ytt_api.fetch(video_id)
         text = " ".join(snippet.text for snippet in result.snippets)
+        
+        # Restore original requests.get if we patched it
+        if proxy_config:
+            requests.get = original_get
+            
         if text.strip():
             return Document(page_content=text, metadata={"source": video_url})
+            
     except Exception as e:
         st.warning(f"YouTubeTranscriptApi failed: {e}")
+        # Restore original requests.get if we patched it and there was an error
+        if proxy_config:
+            requests.get = original_get
 
-    # Method 2: Groq Whisper
+    # Method 2: Groq Whisper without proxy support
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
             audio_path = os.path.join(temp_dir, "audio.mp3")
@@ -224,8 +299,8 @@ def process_docs(docs: list[Document]) -> FAISS:
         
     try:
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000,
-            chunk_overlap=400
+            chunk_size=1000,
+            chunk_overlap=200
         )
         document_chunks = text_splitter.split_documents(docs)
         embeddings = OpenAIEmbeddings(api_key=st.session_state.openai_key)
@@ -272,10 +347,32 @@ def setup_bot(docs: list[Document]):
     ])
     
     document_chain = create_stuff_documents_chain(llm, prompt)
-    retriever = db.as_retriever(search_kwargs={"k": 8})
+    retriever = db.as_retriever()
     retrieval_chain = create_retrieval_chain(retriever, document_chain)
     
     return retrieval_chain,memory
+
+def display_rate_limit_status():
+    """Display current YouTube rate limit status"""
+    current_time = datetime.now()
+    # Clean old requests
+    st.session_state.youtube_requests = [
+        req_time for req_time in st.session_state.youtube_requests 
+        if current_time - req_time < timedelta(seconds=RATE_LIMIT_WINDOW)
+    ]
+    
+    remaining = YOUTUBE_RATE_LIMIT - len(st.session_state.youtube_requests)
+    if remaining <= 0:
+        oldest_request = min(st.session_state.youtube_requests) if st.session_state.youtube_requests else current_time
+        wait_time = RATE_LIMIT_WINDOW - (current_time - oldest_request).total_seconds()
+        st.markdown(f"""
+        <div class='rate-limit-warning'>
+            ⏱️ <strong>YouTube Rate Limit:</strong> 0/{YOUTUBE_RATE_LIMIT} requests remaining<br>
+            Next request available in: {int(wait_time/60)} minutes
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.info(f"📊 YouTube requests: {remaining}/{YOUTUBE_RATE_LIMIT} remaining this hour")
 
 # Main UI
 def main():
@@ -285,10 +382,10 @@ def main():
         return
 
     # Main content area with tabs
-    tab1, tab2 = st.tabs(["📁 Add Sources", "💬 Chat with AI Tutor"])
+    tab1, tab2 = st.tabs(["🔍 Add Sources", "💬 Chat with AI Tutor"])
     
     with tab1:
-        st.header("📁 Add Learning Sources")
+        st.header("🔍 Add Learning Sources")
         
         # Source type selection
         col1, col2 = st.columns([1, 2])
@@ -303,19 +400,29 @@ def main():
         
         if source_type == "YouTube Video":
             st.subheader("🎥 YouTube Video")
+            
+            # Display rate limit status
+            display_rate_limit_status()
+            
             youtube_url = st.text_input(
                 "Enter YouTube URL:",
                 placeholder="https://www.youtube.com/watch?v=...",
                 key="youtube_input"
             )
             
-            if st.button("Process YouTube Video", key="process_youtube") and youtube_url:
-                with st.spinner("Fetching transcript..."):
-                    doc = fetch_transcript_YT(youtube_url)
-                    if doc:
-                        all_docs.append(doc)
-                        st.success("✅ YouTube video processed!")
-                        st.session_state.processed_sources.append(f"YouTube: {youtube_url}")
+            # Check if rate limit allows processing
+            can_proceed, wait_time = check_youtube_rate_limit()
+            
+            if st.button("Process YouTube Video", key="process_youtube", disabled=not can_proceed) and youtube_url:
+                if not can_proceed:
+                    st.error(f"⏱️ Rate limit reached. Please wait {int(wait_time/60)} minutes.")
+                else:
+                    with st.spinner("Fetching transcript..."):
+                        doc = fetch_transcript_YT(youtube_url)
+                        if doc:
+                            all_docs.append(doc)
+                            st.success("✅ YouTube video processed!")
+                            st.session_state.processed_sources.append(f"YouTube: {youtube_url}")
 
         elif source_type == "Web Page":
             st.subheader("🌐 Web Page")
@@ -400,6 +507,7 @@ def main():
                 <div class="source-card">
                     <h4 style="color: #2c3e50;">🎥 YouTube Videos</h4>
                     <p style="color: #34495e;">Extract transcripts and learn from educational videos</p>
+                    <small style="color: #6c757d;">Rate limited: 5 requests/hour</small>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -423,6 +531,16 @@ def main():
         # Sidebar info about processed sources
         with st.sidebar:
             st.header("📊 Session Info")
+            
+            # Display YouTube rate limit status in sidebar
+            current_time = datetime.now()
+            st.session_state.youtube_requests = [
+                req_time for req_time in st.session_state.youtube_requests 
+                if current_time - req_time < timedelta(seconds=RATE_LIMIT_WINDOW)
+            ]
+            remaining = YOUTUBE_RATE_LIMIT - len(st.session_state.youtube_requests)
+            st.markdown(f"**YouTube Requests:** {remaining}/{YOUTUBE_RATE_LIMIT} remaining")
+            
             if st.session_state.processed_sources:
                 st.markdown("### 📋 Active Sources")
                 for source in st.session_state.processed_sources:
@@ -439,15 +557,15 @@ def main():
                 <h3 style="color: #2c3e50;">📌 Instructions for Adding Sources</h3>
                 <ul style="color: #34495e; font-size: 1rem; line-height: 1.6;">
                      <li><b>📄 PDF:</b> Use only unencrypted and unlocked PDFs. Avoid scanned or image-only PDFs.</li>
-                    <li><b>🌐 Web Page:</b> Some sites may block text extraction. If content isn’t loading, try another webpage.</li>
-                    <li><b>🎥 YouTube Video:</b> Support English Videos only. If subtitles are missing, long videos may take more time to process sp Please use Short Youtube Video for testing it.</li>
-                     
+                    <li><b>🌐 Web Page:</b> Some sites may block text extraction. If content isn't loading, try another webpage.</li>
+                    <li><b>🎥 YouTube Video:</b> Rate limited to 5 requests/hour. If subtitles are missing, long videos may take more time to process.</li>
                 </ul>
                 <p style="color: #2c3e50; margin-top: 1rem;">
                          👉 Go to the <b>'Add Sources'</b> tab to upload your content and start learning!
                  </p>
                 </div>
                 """, unsafe_allow_html=True)
+
 # Chat interface
         if st.session_state.retrieval_chain:
             st.header("💬 Chat with your AI Tutor")
@@ -557,8 +675,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
