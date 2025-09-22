@@ -299,8 +299,8 @@ def process_docs(docs: list[Document]) -> FAISS:
         
     try:
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200
+            chunk_size=2000,
+            chunk_overlap=400
         )
         document_chunks = text_splitter.split_documents(docs)
         embeddings = OpenAIEmbeddings(api_key=st.session_state.openai_key)
@@ -347,7 +347,7 @@ def setup_bot(docs: list[Document]):
     ])
     
     document_chain = create_stuff_documents_chain(llm, prompt)
-    retriever = db.as_retriever()
+    retriever = db.as_retriever(search_kwargs={"k": 8})
     retrieval_chain = create_retrieval_chain(retriever, document_chain)
     
     return retrieval_chain,memory
@@ -392,7 +392,7 @@ def main():
         with col1:
             source_type = st.selectbox(
                 "Choose source type:",
-                ["PDF Document", "Web Page", "YouTube Video"],
+                ["Web Page", "PDF Document", "YouTube Video"],
                 key="source_type_select"
             )
         
@@ -556,9 +556,9 @@ def main():
                 <div style="text-align: left; padding: 1.5rem; background: #f8f9fa; border-radius: 10px; margin: 2rem 0;">
                 <h3 style="color: #2c3e50;">📌 Instructions for Adding Sources</h3>
                 <ul style="color: #34495e; font-size: 1rem; line-height: 1.6;">
-                     <li><b>📄 PDF:</b> Use only unencrypted and unlocked PDFs. Avoid scanned or image-only PDFs.</li>
-                    <li><b>🌐 Web Page:</b> Some sites may block text extraction. If content isn't loading, try another webpage.</li>
-                    <li><b>🎥 YouTube Video:</b> Rate limited to 5 requests/hour. If subtitles are missing, long videos may take more time to process.</li>
+                      <li><b>🌐 Web Page:</b> Some sites may block text extraction. If content isn't loading, try another webpage.</li>
+                      <li><b>📄 PDF:</b> Use only unencrypted and unlocked PDFs. Avoid scanned or image-only PDFs.</li>
+                      <li><b>🎥 YouTube Video:</b> Rate limited to 5 requests/hour. If subtitles are missing, long videos may take more time to process so Please use shorter Video for Demo Checking.</li>      
                 </ul>
                 <p style="color: #2c3e50; margin-top: 1rem;">
                          👉 Go to the <b>'Add Sources'</b> tab to upload your content and start learning!
@@ -675,4 +675,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
