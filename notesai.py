@@ -223,7 +223,7 @@ def fetch_transcript_YT(video_url: str) -> Document:
             requests.get = original_get
 
     # Method 2: Groq Whisper without proxy support
-    try:
+    except:
         with tempfile.TemporaryDirectory() as temp_dir:
             audio_path = os.path.join(temp_dir, "audio.mp3")
             
@@ -675,5 +675,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
