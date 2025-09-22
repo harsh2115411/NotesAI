@@ -558,7 +558,7 @@ def main():
                 <ul style="color: #34495e; font-size: 1rem; line-height: 1.6;">
                       <li><b>🌐 Web Page:</b> Some sites may block text extraction. If content isn't loading, try another webpage.</li>
                       <li><b>📄 PDF:</b> Use only unencrypted and unlocked PDFs. Avoid scanned or image-only PDFs.</li>
-                      <li><b>🎥 YouTube Video:</b> Rate limited to 5 requests/hour. If subtitles are missing, long videos may take more time to process so Please use shorter Video for Demo Checking.</li>      
+                      <li><b>🎥 YouTube Video:</b>Youtube Video feature may not work due to Youtube blocking of transcript fetching, in that case please try with other 2 sources.</li>      
                 </ul>
                 <p style="color: #2c3e50; margin-top: 1rem;">
                          👉 Go to the <b>'Add Sources'</b> tab to upload your content and start learning!
@@ -675,6 +675,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
