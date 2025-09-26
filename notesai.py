@@ -24,8 +24,13 @@ import random
 import requests
 import time
 
-st.markdown("### 🎥 Demo Video")
-st.video("https://drive.google.com/file/d/1A75QbvEN3gimHp0v1EL6i57fBoBgg-Ty/view")
+st.markdown(
+    """
+    ### 🎥 Demo Video  
+    👉 [Click here to watch the demo](https://drive.google.com/file/d/1A75QbvEN3gimHp0v1EL6i57fBoBgg-Ty/view)
+    """
+)
+
 
 st.set_page_config(
     page_title="NotesAI - Smart Learning Assistant",
@@ -595,6 +600,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
