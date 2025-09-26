@@ -26,8 +26,7 @@ import time
 
 st.markdown(
     """
-    ### 🎥 Demo Video  
-    👉 [Click here to watch the demo](https://drive.google.com/file/d/1A75QbvEN3gimHp0v1EL6i57fBoBgg-Ty/view)
+    ### 🎥 Demo Video : [Click here](https://drive.google.com/file/d/1A75QbvEN3gimHp0v1EL6i57fBoBgg-Ty/view)
     """
 )
 
@@ -600,6 +599,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
